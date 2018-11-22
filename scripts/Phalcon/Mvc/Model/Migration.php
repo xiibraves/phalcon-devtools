@@ -184,6 +184,9 @@ class Migration
         $schema = Utils::resolveDbSchema(self::$databaseConfig);
 
         foreach (self::$connection->listTables($schema) as $table) {
+            if (strpos($table, 'view') !== false) {
+                continue;
+            }
             $classDefinition[$table] = self::generate($version, $table, $exportData);
         }
 
