@@ -20,6 +20,8 @@
 namespace Phalcon\Db\Dialect;
 
 use Phalcon\Db\ReferenceInterface;
+use Phalcon\Db\Column;
+use Phalcon\Db\Exception;
 
 /**
  * Phalcon\Db\Dialect\DialectMysql
@@ -69,5 +71,177 @@ class DialectMysql extends Mysql
         $sql = 'SELECT @@foreign_key_checks';
 
         return $sql;
+    }
+
+    /**
+     * Gets the column name in MySQL
+     */
+    public function getColumnDefinition($column) {
+        $columnSql = "";
+
+        $type = $column->getType();
+        if (gettype($type) == "string") {
+            $columnSql .= $type;
+            $type = $column->getTypeReference();
+        }
+
+        switch ($type) {
+
+            case Column::TYPE_INTEGER:
+                if (!$columnSql) {
+                    $columnSql .= "INT";
+                }
+                $columnSql .= "(" . $column->getSize() . "}";
+                if ($column->isUnsigned()) {
+                    $columnSql .= " UNSIGNED";
+                }
+                break;
+            case Column::TYPE_DATE:
+                if (!$columnSql) {
+                    $columnSql .= "DATE";
+                }
+                break;
+            case Column::TYPE_VARCHAR:
+                if (!$columnSql) {
+                    $columnSql .= "VARCHAR";
+                }
+                $columnSql .= "(" . $column->getSize() . ")";
+                break;
+            case Column::TYPE_DECIMAL:
+                if (!$columnSql) {
+                    $columnSql .= "DECIMAL";
+                }
+                $columnSql .= "(" . $column->getSize() . "," . $column->getScale() . ")";
+                if ($column->isUnsigned()) {
+                    $columnSql .= " UNSIGNED";
+                }
+                break;
+            case Column::TYPE_DATETIME:
+                if (!$columnSql) {
+                    $columnSql .= "DATETIME";
+                }
+                break;
+            case Column::TYPE_TIMESTAMP:
+                if (!$columnSql) {
+                    $columnSql .= "TIMESTAMP";
+                }
+                break;
+            case Column::TYPE_CHAR:
+                if (!$columnSql) {
+                    $columnSql .= "CHAR";
+                }
+                $columnSql .= "(" . $column->getSize() . ")";
+                break;
+            case Column::TYPE_TEXT:
+                if (!$columnSql) {
+                    $columnSql .= "TEXT";
+                }
+                break;
+            case Column::TYPE_BOOLEAN:
+                if (!$columnSql) {
+                    $columnSql .= "TINYINT(1)";
+                }
+                break;
+            case Column::TYPE_FLOAT:
+                if (!$columnSql) {
+                    $columnSql .= "FLOAT";
+                }
+                $size = $column->getSize();
+                if ($size) {
+                    $scale = $column->getScale();
+                    if ($scale) {
+                        $columnSql .= "(" . $size . "," . $scale . ")";
+                    } else {
+                        $columnSql .= "(" . $size . ")";
+                    }
+                }
+                if ($column->isUnsigned()) {
+                    $columnSql .= " UNSIGNED";
+                }
+                break;
+             case Column::TYPE_DOUBLE:
+                if (!$columnSql) {
+                    $columnSql .= "DOUBLE";
+                }
+                $size = $column->getSize();
+                if ($size) {
+                    $scale = $column->getScale();
+                    $columnSql .= "(" . $size;
+                    if ($scale) {
+                        $columnSql .= "," . $scale . ")";
+                    } else {
+                        $columnSql .= ")";
+                    }
+                }
+                if ($column->isUnsigned()) {
+                    $columnSql .= " UNSIGNED";
+                }
+                break;
+             case Column::TYPE_BIGINTEGER:
+                if (!$columnSql) {
+                    $columnSql .= "BIGINT";
+                }
+                $scale = $column->getSize();
+                if ($scale) {
+                    $columnSql .= "(" . $column->getSize() . ")";
+                }
+                if ($column->isUnsigned()) {
+                    $columnSql .= " UNSIGNED";
+                }
+                break;
+            case Column::TYPE_TINYBLOB:
+                if (!$columnSql) {
+                    $columnSql .= "TINYBLOB";
+                }
+                break;
+            case Column::TYPE_BLOB:
+                if (!$columnSql) {
+                    $columnSql .= "BLOB";
+                }
+                break;
+            case Column::TYPE_MEDIUMBLOB:
+                if (!$columnSql) {
+                    $columnSql .= "MEDIUMBLOB";
+                }
+                break;
+            case Column::TYPE_LONGBLOB:
+                if (!$columnSql) {
+                    $columnSql .= "LONGBLOB";
+                }
+                break;
+            case Column::TYPE_JSON:
+                if (!$columnSql) {
+                    $columnSql .= "JSON";
+                }
+                break;
+            case Column::TYPE_JSONB:
+                if (!$columnSql) {
+                    $columnSql .= "JSON";
+                }
+                break;
+
+            default:
+                if (!$columnSql) {
+                    throw new Exception("Unrecognized MySQL data type at column " . $column->getName());
+                }
+
+                $typeValues = $column->getTypeValues();
+                if ($typeValues) {
+                    if (gettype($typeValues == "array")) {
+                        $valueSql = "";
+                        foreach ($typeValues as $value) {
+                            $valueSql .= "\"" . addcslashes($value, "\"") . "\", ";
+
+                        }
+                        $columnSql .= "(" . substr($valueSql, 0, -2) . ")";
+                    } else {
+                        $columnSql .= "(\"" . addcslashes($typeValues, "\"") . "\")";
+                    }
+                }
+
+        }
+
+        return $columnSql;
+
     }
 }
