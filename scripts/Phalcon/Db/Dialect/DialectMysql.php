@@ -91,7 +91,7 @@ class DialectMysql extends Mysql
                 if (!$columnSql) {
                     $columnSql .= "INT";
                 }
-                $columnSql .= "(" . $column->getSize() . "}";
+                $columnSql .= "(" . $column->getSize() . ")";
                 if ($column->isUnsigned()) {
                     $columnSql .= " UNSIGNED";
                 }
